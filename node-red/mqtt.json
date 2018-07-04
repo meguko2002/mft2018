@@ -1,0 +1,123 @@
+[
+    {
+        "id": "bcf967d8.9fd8b8",
+        "type": "mosca in",
+        "z": "a69acd1e.31637",
+        "mqtt_port": 1883,
+        "mqtt_ws_port": 8080,
+        "name": "",
+        "username": "",
+        "password": "",
+        "dburl": "",
+        "x": 170,
+        "y": 80,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "d55cf240.11ada",
+        "type": "mqtt in",
+        "z": "a69acd1e.31637",
+        "name": "analog",
+        "topic": "analog",
+        "qos": "2",
+        "broker": "a903374f.fd6558",
+        "x": 130,
+        "y": 160,
+        "wires": [
+            [
+                "88c92c56.7492f"
+            ]
+        ]
+    },
+    {
+        "id": "24277f79.0857c",
+        "type": "mqtt out",
+        "z": "a69acd1e.31637",
+        "name": "analog",
+        "topic": "analog",
+        "qos": "",
+        "retain": "",
+        "broker": "a903374f.fd6558",
+        "x": 330,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "a8ab676.245fa98",
+        "type": "inject",
+        "z": "a69acd1e.31637",
+        "name": "",
+        "topic": "",
+        "payload": "0:50",
+        "payloadType": "str",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "x": 150,
+        "y": 240,
+        "wires": [
+            [
+                "24277f79.0857c"
+            ]
+        ]
+    },
+    {
+        "id": "88c92c56.7492f",
+        "type": "debug",
+        "z": "a69acd1e.31637",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "x": 300,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "f11f7b38.d5e3d8",
+        "type": "inject",
+        "z": "a69acd1e.31637",
+        "name": "",
+        "topic": "",
+        "payload": "50:0",
+        "payloadType": "str",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "x": 150,
+        "y": 300,
+        "wires": [
+            [
+                "24277f79.0857c"
+            ]
+        ]
+    },
+    {
+        "id": "a903374f.fd6558",
+        "type": "mqtt-broker",
+        "z": "",
+        "name": "",
+        "broker": "localhost",
+        "port": "1883",
+        "clientid": "",
+        "usetls": false,
+        "compatmode": true,
+        "keepalive": "60",
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": ""
+    }
+]
