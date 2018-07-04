@@ -3,7 +3,7 @@
 1. Unityをインストール
 1. 新規のプロジェクトを作成
 1. [こちら](https://qiita.com/syuhei/items/0e751a8dfaef941cf46b)を参考にunity3d_mqtt.unitypackageを取り込む
-1. csとpingをAssetsに入れる
+1. csとpngをAssetsに入れる
 1. オブジェクトを2つ作って、それぞれPlayer,Enemyのタグをつける
 1. UI->RawImageを作る
     1. Rader.csを割り当てる

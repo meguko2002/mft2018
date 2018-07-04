@@ -57,7 +57,7 @@ def keystone_correction(img):
     dst = cv2.warpPerspective(img,M,(364,257))
     # 結果出力
     # print("Best parameter: white={} (rate={})".format(best_white, best_rate))
-    # 検出した矩形を表示
+    # 検出した台形を表示
     cv2.drawContours(img, [best_approx], -1, (0, 255, 0), 3)
     return dst
 
