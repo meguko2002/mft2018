@@ -65,7 +65,7 @@ public class Mqtt : MonoBehaviour {
                 timeleft = 0.1f;
                 // プレイヤーの位置情報を送信する
                 Vector3 p = player.transform.position;
-                client.Publish("player", System.Text.Encoding.UTF8.GetBytes(String.Format("{0}:{1}", (int)p.x, (int)p.y)), MqttMsgBase.QOS_LEVEL_AT_MOST_ONCE, true);
+                client.Publish("player", System.Text.Encoding.UTF8.GetBytes(String.Format("{0}:{1}", (int)p.x, (int)p.z)), MqttMsgBase.QOS_LEVEL_AT_MOST_ONCE, true);
             }
         }
     }
