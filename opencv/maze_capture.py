@@ -8,7 +8,7 @@ import paho.mqtt.client as mqtt
 # 設定
 color = 3 # 検出する色を指定（1=青,2=緑,3=赤,0=黒）
 # IP WebcamのURLを指定
-webcam = False
+webcam = True
 url='http://192.168.43.146:8080/shot.jpg'
 
 # 迷路を検出して台形補正する
@@ -57,7 +57,7 @@ def keystone_correction(img):
     dst = cv2.warpPerspective(img,M,(364,257))
     # 結果出力
     # print("Best parameter: white={} (rate={})".format(best_white, best_rate))
-    # 検出した台形を表示
+    # 検出した矩形を表示
     cv2.drawContours(img, [best_approx], -1, (0, 255, 0), 3)
     return dst
 
@@ -151,7 +151,7 @@ while(1):
         cv2.imshow('dst', dst)
         if cx is not None and cy is not None:
             # mqttで座標を送信
-            client.publish('analog', '%d:%d' % (cx,cy))
+            client.publish('enemy', '%d:%d' % (cx,cy))
     # wait for ESC key to exit
     k = cv2.waitKey(1)
     if k == 27:
