@@ -132,7 +132,6 @@ def capture_thread():
     client = mqtt.Client()
     client.connect('127.0.0.1', port=1883, keepalive=60)
     while(1):
-        print("P0:%f" % time.perf_counter())
         if webcam:
             # Use urllib to get the image from the IP camera
             imgResp = urllib.request.urlopen(url)
@@ -147,7 +146,6 @@ def capture_thread():
         if frame is None:
             cv2.waitKey(1)
             continue
-        print("P1:%f" % time.perf_counter())
         # 迷路を検出して台形補正する
         dst = keystone_correction(frame)
         g_frame = frame
@@ -158,7 +156,6 @@ def capture_thread():
             if cx is not None and cy is not None:
                 # mqttで座標を送信
                 client.publish('enemy', '%d:%d' % (cx,cy))
-        print("P2:%f" % time.perf_counter())
         # FPSを計算する
         current_t = time.perf_counter()
         cnt += 1
