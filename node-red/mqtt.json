@@ -9,8 +9,8 @@
         "username": "",
         "password": "",
         "dburl": "",
-        "x": 170,
-        "y": 80,
+        "x": 130,
+        "y": 60,
         "wires": [
             []
         ]
@@ -19,12 +19,12 @@
         "id": "d55cf240.11ada",
         "type": "mqtt in",
         "z": "a69acd1e.31637",
-        "name": "analog",
-        "topic": "analog",
+        "name": "player",
+        "topic": "player",
         "qos": "2",
         "broker": "a903374f.fd6558",
-        "x": 130,
-        "y": 160,
+        "x": 90,
+        "y": 180,
         "wires": [
             [
                 "88c92c56.7492f"
@@ -35,13 +35,13 @@
         "id": "24277f79.0857c",
         "type": "mqtt out",
         "z": "a69acd1e.31637",
-        "name": "analog",
-        "topic": "analog",
+        "name": "enemy",
+        "topic": "enemy",
         "qos": "",
         "retain": "",
         "broker": "a903374f.fd6558",
-        "x": 330,
-        "y": 240,
+        "x": 770,
+        "y": 360,
         "wires": []
     },
     {
@@ -50,17 +50,17 @@
         "z": "a69acd1e.31637",
         "name": "",
         "topic": "",
-        "payload": "0:50",
+        "payload": "100",
         "payloadType": "str",
         "repeat": "",
         "crontab": "",
         "once": false,
         "onceDelay": 0.1,
-        "x": 150,
-        "y": 240,
+        "x": 110,
+        "y": 260,
         "wires": [
             [
-                "24277f79.0857c"
+                "1c43d62c.76bc0a"
             ]
         ]
     },
@@ -74,29 +74,143 @@
         "console": false,
         "tostatus": false,
         "complete": "payload",
-        "x": 300,
-        "y": 160,
+        "x": 260,
+        "y": 180,
         "wires": []
     },
     {
-        "id": "f11f7b38.d5e3d8",
-        "type": "inject",
+        "id": "a4b0f284.98485",
+        "type": "function",
         "z": "a69acd1e.31637",
         "name": "",
-        "topic": "",
-        "payload": "50:0",
-        "payloadType": "str",
-        "repeat": "",
-        "crontab": "",
-        "once": false,
-        "onceDelay": 0.1,
-        "x": 150,
+        "func": "msg.payload -= 5;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 410,
+        "y": 260,
+        "wires": [
+            [
+                "7aab242.fd80fdc"
+            ]
+        ]
+    },
+    {
+        "id": "7aab242.fd80fdc",
+        "type": "switch",
+        "z": "a69acd1e.31637",
+        "name": "",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "gte",
+                "v": "0",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 410,
+        "y": 360,
+        "wires": [
+            [
+                "a4b0f284.98485",
+                "126c943d.3ccd8c"
+            ]
+        ]
+    },
+    {
+        "id": "126c943d.3ccd8c",
+        "type": "delay",
+        "z": "a69acd1e.31637",
+        "name": "",
+        "pauseType": "rate",
+        "timeout": "1",
+        "timeoutUnits": "seconds",
+        "rate": "10",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "x": 600,
         "y": 300,
+        "wires": [
+            [
+                "ca82cb43.bbd948"
+            ]
+        ]
+    },
+    {
+        "id": "ca82cb43.bbd948",
+        "type": "function",
+        "z": "a69acd1e.31637",
+        "name": "",
+        "func": "msg.payload = msg.payload + \":\" + msg.payload;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 620,
+        "y": 360,
         "wires": [
             [
                 "24277f79.0857c"
             ]
         ]
+    },
+    {
+        "id": "1c43d62c.76bc0a",
+        "type": "delay",
+        "z": "a69acd1e.31637",
+        "name": "",
+        "pauseType": "delay",
+        "timeout": "3",
+        "timeoutUnits": "seconds",
+        "rate": "10",
+        "nbRateUnits": "1",
+        "rateUnits": "second",
+        "randomFirst": "1",
+        "randomLast": "5",
+        "randomUnits": "seconds",
+        "drop": false,
+        "x": 260,
+        "y": 260,
+        "wires": [
+            [
+                "a4b0f284.98485"
+            ]
+        ]
+    },
+    {
+        "id": "888e9907.0c2e78",
+        "type": "mqtt in",
+        "z": "a69acd1e.31637",
+        "name": "enemy",
+        "topic": "enemy",
+        "qos": "2",
+        "broker": "a903374f.fd6558",
+        "x": 90,
+        "y": 120,
+        "wires": [
+            [
+                "92032fe9.9ef0f"
+            ]
+        ]
+    },
+    {
+        "id": "92032fe9.9ef0f",
+        "type": "debug",
+        "z": "a69acd1e.31637",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "x": 260,
+        "y": 120,
+        "wires": []
     },
     {
         "id": "a903374f.fd6558",

@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import threading
 import time
 import urllib
 import urllib.request
@@ -8,8 +9,11 @@ import paho.mqtt.client as mqtt
 # 設定
 color = 3 # 検出する色を指定（1=青,2=緑,3=赤,0=黒）
 # IP WebcamのURLを指定
-webcam = True
+webcam = False
 url='http://192.168.43.146:8080/shot.jpg'
+# 画像表示用の変数
+g_frame = None
+g_dst = None
 
 # 迷路を検出して台形補正する
 def keystone_correction(img):
@@ -22,11 +26,12 @@ def keystone_correction(img):
     best_rate = 0.0
     best_approx = []
     # スレッシュホールドを変えて対象が見つかるまでループする
-    for white in range(20, 220, 50):
+    for white in range(50, 150, 20):
         # 二値化
         ret, th1 = cv2.threshold(gray, white, 255, cv2.THRESH_BINARY)
         # 輪郭抽出
         image, contours, hierarchy = cv2.findContours(th1, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        cv2.imshow(str(white), th1)
         # 角の数が4つ、面積が10%〜70%を満たすものを選定
         max_area = 0
         for cnt in contours:
@@ -115,56 +120,78 @@ def color_pick(img, color):
     cv2.drawContours(img, [best_cnt], -1, (0, 255, 0), 3)
     return mask, cx, cy
 
-# 初期化
-prev_t = 0
-current_t = 0
-cnt = 0
+# 画像処理スレッド
+def capture_thread():
+    global g_frame
+    global g_dst
+    # FPS計算用の変数を初期化
+    base_t = prev_t = time.perf_counter()
+    current_t = 0
+    cnt = 0
+    # mqttの初期化
+    client = mqtt.Client()
+    client.connect('127.0.0.1', port=1883, keepalive=60)
+    while(1):
+        print("P0:%f" % time.perf_counter())
+        if webcam:
+            # Use urllib to get the image from the IP camera
+            imgResp = urllib.request.urlopen(url)
+            # Numpy to convert into a array
+            imgNp = np.array(bytearray(imgResp.read()),dtype=np.uint8)    
+            # Finally decode the array to OpenCV usable format ;) 
+            frame = cv2.imdecode(imgNp,-1)
+        else:
+            # 動画を1フレーム読み込む
+            ret, frame = cap.read()
+            frame = cv2.resize(frame, (640, 360))
+        if frame is None:
+            cv2.waitKey(1)
+            continue
+        print("P1:%f" % time.perf_counter())
+        # 迷路を検出して台形補正する
+        dst = keystone_correction(frame)
+        g_frame = frame
+        if dst is not None:
+            # 迷路の中から指定色の物体を検出する
+            mask, cx, cy = color_pick(dst, color)
+            g_dst = dst
+            if cx is not None and cy is not None:
+                # mqttで座標を送信
+                client.publish('enemy', '%d:%d' % (cx,cy))
+        print("P2:%f" % time.perf_counter())
+        # FPSを計算する
+        current_t = time.perf_counter()
+        cnt += 1
+        dt = current_t - base_t
+        if dt > 1.0:
+            base_t = current_t
+            fps = cnt / dt 
+            cnt = 0
+            print('fps = %.2f' % fps)
+        # FPS調整用のSleep時間を計算
+        current_t = time.perf_counter()
+        dt = 0.095 - (current_t - prev_t)
+        if dt > 0:
+            time.sleep(dt)
+        prev_t = time.perf_counter()
 
 # カメラをキャプチャする
 cap = cv2.VideoCapture(0) # 0はカメラのデバイス番号
-# mqttの初期化
-client = mqtt.Client()
-client.connect('127.0.0.1', port=1883, keepalive=60)
+# 画像処理スレッドを立ち上げる
+th = threading.Thread(target=capture_thread)
+th.start()
+cv2.namedWindow("frame")
 
+# ウィンドウの更新とキー入力の検出を行なう
 while(1):
-    if webcam:
-        # Use urllib to get the image from the IP camera
-        imgResp = urllib.request.urlopen(url)
-        # Numpy to convert into a array
-        imgNp = np.array(bytearray(imgResp.read()),dtype=np.uint8)    
-        # Finally decode the array to OpenCV usable format ;) 
-        frame = cv2.imdecode(imgNp,-1)
-    else:
-        # 動画を1フレーム読み込む
-        ret, frame = cap.read()
-    if frame is None:
-        cv2.waitKey(1)
-        continue
-    # 迷路を検出して台形補正する
-    dst = keystone_correction(frame)
     # 結果を表示
-    cv2.imshow('frame', frame)
-    if dst is not None:
-        # 迷路の中から指定色の物体を検出する
-        mask, cx, cy = color_pick(dst, color)
-        # 結果を表示
-        cv2.imshow('dst', dst)
-        if cx is not None and cy is not None:
-            # mqttで座標を送信
-            client.publish('enemy', '%d:%d' % (cx,cy))
-    # wait for ESC key to exit
-    k = cv2.waitKey(1)
-    if k == 27:
+    if g_frame is not None:
+        cv2.imshow('frame', g_frame)
+    if g_dst is not None:
+        cv2.imshow('dst', g_dst)
+    # ESCキーでプログラムを終了
+    if cv2.waitKey(50) == 27:
         break
-    # FPSを計算する
-    current_t = time.perf_counter()
-    cnt += 1
-    if current_t - prev_t > 1.0: 
-        dt = current_t - prev_t
-        prev_t = current_t
-        fps = cnt / dt 
-        cnt = 0
-        print('fps = %.2f' % fps)
 
 cap.release()
 cv2.destroyAllWindows()
