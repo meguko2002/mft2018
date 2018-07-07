@@ -31,7 +31,6 @@ def keystone_correction(img):
         ret, th1 = cv2.threshold(gray, white, 255, cv2.THRESH_BINARY)
         # 輪郭抽出
         image, contours, hierarchy = cv2.findContours(th1, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
-        cv2.imshow(str(white), th1)
         # 角の数が4つ、面積が10%〜70%を満たすものを選定
         max_area = 0
         for cnt in contours:
