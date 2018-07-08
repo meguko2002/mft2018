@@ -73,23 +73,26 @@ def color_pick(img, color):
         # HSV色空間に変換
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         # 青色の検出
-        hsv_min = np.array([90,70,70])
-        hsv_max = np.array([110,255,255])
+        hsv_min = np.array([90,50,50])
+        hsv_max = np.array([130,255,255])
         mask = cv2.inRange(hsv, hsv_min, hsv_max)
     elif color == 2:
         # HSV色空間に変換
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         # 緑色の検出
-        hsv_min = np.array([50,50,50])
+        hsv_min = np.array([40,50,50])
         hsv_max = np.array([80,255,255])
         mask = cv2.inRange(hsv, hsv_min, hsv_max)
     elif color == 3:
         # HSV色空間に変換
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         # 赤色の検出
-        hsv_min = np.array([0,100,30])
-        hsv_max = np.array([5,255,255])
+        hsv_min = np.array([0,50,50])
+        hsv_max = np.array([30,255,255])
         mask = cv2.inRange(hsv, hsv_min, hsv_max)
+        hsv_min = np.array([150,50,50])
+        hsv_max = np.array([180,255,255])
+        mask += cv2.inRange(hsv, hsv_min, hsv_max)
     else:
         # グレースケール化
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
