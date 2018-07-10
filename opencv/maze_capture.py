@@ -73,7 +73,7 @@ def color_pick(img, color):
         # HSV色空間に変換
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         # 青色の検出
-        hsv_min = np.array([90,50,50])
+        hsv_min = np.array([90,70,70])
         hsv_max = np.array([130,255,255])
         mask = cv2.inRange(hsv, hsv_min, hsv_max)
     elif color == 2:
@@ -87,10 +87,10 @@ def color_pick(img, color):
         # HSV色空間に変換
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         # 赤色の検出
-        hsv_min = np.array([0,50,50])
-        hsv_max = np.array([30,255,255])
+        hsv_min = np.array([0,100,30])
+        hsv_max = np.array([20,255,255])
         mask = cv2.inRange(hsv, hsv_min, hsv_max)
-        hsv_min = np.array([150,50,50])
+        hsv_min = np.array([160,100,30])
         hsv_max = np.array([180,255,255])
         mask += cv2.inRange(hsv, hsv_min, hsv_max)
     else:
@@ -130,9 +130,6 @@ def capture_thread():
     base_t = prev_t = time.perf_counter()
     current_t = 0
     cnt = 0
-    # mqttの初期化
-    client = mqtt.Client()
-    client.connect('127.0.0.1', port=1883, keepalive=60)
     while(1):
         if webcam:
             # Use urllib to get the image from the IP camera
@@ -176,11 +173,12 @@ def capture_thread():
 
 # カメラをキャプチャする
 cap = cv2.VideoCapture(0) # 0はカメラのデバイス番号
+# mqttの初期化
+client = mqtt.Client()
+client.connect('127.0.0.1', port=1883, keepalive=60)
 # 画像処理スレッドを立ち上げる
 th = threading.Thread(target=capture_thread)
 th.start()
-cv2.namedWindow("frame")
-
 # ウィンドウの更新とキー入力の検出を行なう
 while(1):
     # 結果を表示
@@ -191,6 +189,7 @@ while(1):
     # ESCキーでプログラムを終了
     if cv2.waitKey(50) == 27:
         break
-
+# リソースを開放する
+client.disconnect()
 cap.release()
 cv2.destroyAllWindows()
