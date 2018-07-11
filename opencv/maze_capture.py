@@ -9,7 +9,7 @@ import paho.mqtt.client as mqtt
 # 設定
 color = 3 # 検出する色を指定（1=青,2=緑,3=赤,0=黒）
 # IP WebcamのURLを指定
-webcam = False
+webcam = True
 url='http://192.168.43.146:8080/shot.jpg'
 # 画像表示用の変数
 g_frame = None
@@ -102,7 +102,7 @@ def color_pick(img, color):
     image, contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     # 面積が1%以上で最大の領域を選定
     max_area = 0
-    best_cnt = []
+    best_cnt = None
     for cnt in contours:
         epsilon = 0.01 * cv2.arcLength(cnt, True)
         tmp = cv2.approxPolyDP(cnt, epsilon, True)
@@ -111,13 +111,18 @@ def color_pick(img, color):
             best_cnt = cnt
             max_area = area
     # 対象が見つかったか判定
-    if best_cnt == []:
+    if best_cnt is None:
         # print("color pick failed.")
         return None, None, None
     # 領域の重心を計算
-    M = cv2.moments(best_cnt)
-    cx = int(M['m10']/M['m00'])
-    cy = int(M['m01']/M['m00'])
+    try:
+        M = cv2.moments(best_cnt)
+        cx = int(M['m10']/M['m00'])
+        cy = int(M['m01']/M['m00'])
+    except ZeroDivisionError:
+        # たまにゼロ割になってしまうケースが有るので対処
+        print("ZeroDivisionError!!")
+        return None, None, None
     # 検出した領域を表示
     cv2.drawContours(img, [best_cnt], -1, (0, 255, 0), 3)
     return mask, cx, cy
