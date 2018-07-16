@@ -9,8 +9,8 @@
         "username": "",
         "password": "",
         "dburl": "",
-        "x": 130,
-        "y": 60,
+        "x": 150,
+        "y": 40,
         "wires": [
             []
         ]
@@ -23,11 +23,11 @@
         "topic": "player",
         "qos": "2",
         "broker": "a903374f.fd6558",
-        "x": 90,
+        "x": 110,
         "y": 180,
         "wires": [
             [
-                "88c92c56.7492f"
+                "665aee00.2bd4a4"
             ]
         ]
     },
@@ -41,7 +41,7 @@
         "retain": "",
         "broker": "a903374f.fd6558",
         "x": 770,
-        "y": 360,
+        "y": 480,
         "wires": []
     },
     {
@@ -57,26 +57,12 @@
         "once": false,
         "onceDelay": 0.1,
         "x": 110,
-        "y": 260,
+        "y": 380,
         "wires": [
             [
                 "1c43d62c.76bc0a"
             ]
         ]
-    },
-    {
-        "id": "88c92c56.7492f",
-        "type": "debug",
-        "z": "a69acd1e.31637",
-        "name": "",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "payload",
-        "x": 260,
-        "y": 180,
-        "wires": []
     },
     {
         "id": "a4b0f284.98485",
@@ -87,7 +73,7 @@
         "outputs": 1,
         "noerr": 0,
         "x": 410,
-        "y": 260,
+        "y": 380,
         "wires": [
             [
                 "7aab242.fd80fdc"
@@ -112,7 +98,7 @@
         "repair": false,
         "outputs": 1,
         "x": 410,
-        "y": 360,
+        "y": 480,
         "wires": [
             [
                 "a4b0f284.98485",
@@ -136,7 +122,7 @@
         "randomUnits": "seconds",
         "drop": false,
         "x": 600,
-        "y": 300,
+        "y": 420,
         "wires": [
             [
                 "ca82cb43.bbd948"
@@ -152,7 +138,7 @@
         "outputs": 1,
         "noerr": 0,
         "x": 620,
-        "y": 360,
+        "y": 480,
         "wires": [
             [
                 "24277f79.0857c"
@@ -175,10 +161,104 @@
         "randomUnits": "seconds",
         "drop": false,
         "x": 260,
-        "y": 260,
+        "y": 380,
         "wires": [
             [
                 "a4b0f284.98485"
+            ]
+        ]
+    },
+    {
+        "id": "8a1529c5.d7af58",
+        "type": "debug",
+        "z": "a69acd1e.31637",
+        "name": "",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "x": 450,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "cb595e.2e5096a",
+        "type": "serial out",
+        "z": "a69acd1e.31637",
+        "name": "",
+        "serial": "6bbde819.193e98",
+        "x": 550,
+        "y": 240,
+        "wires": []
+    },
+    {
+        "id": "57c8c5cc.c3f68c",
+        "type": "serial in",
+        "z": "a69acd1e.31637",
+        "name": "",
+        "serial": "6bbde819.193e98",
+        "x": 170,
+        "y": 540,
+        "wires": [
+            [
+                "8a1529c5.d7af58"
+            ]
+        ]
+    },
+    {
+        "id": "d548929f.dc772",
+        "type": "inject",
+        "z": "a69acd1e.31637",
+        "name": "",
+        "topic": "",
+        "payload": "0:-5",
+        "payloadType": "str",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "x": 110,
+        "y": 240,
+        "wires": [
+            [
+                "665aee00.2bd4a4"
+            ]
+        ]
+    },
+    {
+        "id": "665aee00.2bd4a4",
+        "type": "function",
+        "z": "a69acd1e.31637",
+        "name": "",
+        "func": "var pos = msg.payload.split(\":\");\nvar x = Math.round((parseFloat(pos[0])+4)*9/8);\nvar z = Math.round((parseFloat(pos[1])+6)*18/12);\nvar buf = new Buffer(1)\nif (x % 2) {\n    buf[0] = ((x+1)*19-1) - z;\n} else {\n    buf[0] = x * 19 + z;\n}\nmsg.payload = buf;\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "x": 270,
+        "y": 200,
+        "wires": [
+            [
+                "cb595e.2e5096a"
+            ]
+        ]
+    },
+    {
+        "id": "30cb1fbf.b8fba",
+        "type": "inject",
+        "z": "a69acd1e.31637",
+        "name": "",
+        "topic": "",
+        "payload": "[1]",
+        "payloadType": "bin",
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "x": 190,
+        "y": 300,
+        "wires": [
+            [
+                "cb595e.2e5096a"
             ]
         ]
     },
@@ -190,27 +270,11 @@
         "topic": "enemy",
         "qos": "2",
         "broker": "a903374f.fd6558",
-        "x": 90,
-        "y": 120,
+        "x": 110,
+        "y": 100,
         "wires": [
-            [
-                "92032fe9.9ef0f"
-            ]
+            []
         ]
-    },
-    {
-        "id": "92032fe9.9ef0f",
-        "type": "debug",
-        "z": "a69acd1e.31637",
-        "name": "",
-        "active": true,
-        "tosidebar": true,
-        "console": false,
-        "tostatus": false,
-        "complete": "payload",
-        "x": 260,
-        "y": 120,
-        "wires": []
     },
     {
         "id": "a903374f.fd6558",
@@ -233,5 +297,19 @@
         "willTopic": "",
         "willQos": "0",
         "willPayload": ""
+    },
+    {
+        "id": "6bbde819.193e98",
+        "type": "serial-port",
+        "z": "",
+        "serialport": "/dev/tty.usbmodem1441",
+        "serialbaud": "9600",
+        "databits": "8",
+        "parity": "none",
+        "stopbits": "1",
+        "newline": "1",
+        "bin": "bin",
+        "out": "count",
+        "addchar": false
     }
 ]

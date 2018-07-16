@@ -14,6 +14,7 @@ url='http://192.168.43.146:8080/shot.jpg'
 # 画像表示用の変数
 g_frame = None
 g_dst = None
+g_mask = None
 
 # 迷路を検出して台形補正する
 def keystone_correction(img):
@@ -23,7 +24,6 @@ def keystone_correction(img):
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     # 入力座標の選定
     best_white = 0
-    best_rate = 0.0
     best_approx = []
     # スレッシュホールドを変えて対象が見つかるまでループする
     for white in range(50, 150, 20):
@@ -67,30 +67,28 @@ def keystone_correction(img):
 
 # 各色の位置を検出する
 def color_pick(img, color):
-    # 大きさの計算
-    size = img.shape[0] * img.shape[1]
     if color == 1:
         # HSV色空間に変換
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         # 青色の検出
-        hsv_min = np.array([90,70,70])
-        hsv_max = np.array([130,255,255])
+        hsv_min = np.array([80,50,50])
+        hsv_max = np.array([150,255,255])
         mask = cv2.inRange(hsv, hsv_min, hsv_max)
     elif color == 2:
         # HSV色空間に変換
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         # 緑色の検出
-        hsv_min = np.array([40,50,50])
-        hsv_max = np.array([80,255,255])
+        hsv_min = np.array([30,50,50])
+        hsv_max = np.array([90,255,255])
         mask = cv2.inRange(hsv, hsv_min, hsv_max)
     elif color == 3:
         # HSV色空間に変換
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         # 赤色の検出
-        hsv_min = np.array([0,100,30])
-        hsv_max = np.array([20,255,255])
+        hsv_min = np.array([0,65,65])
+        hsv_max = np.array([40,255,255])
         mask = cv2.inRange(hsv, hsv_min, hsv_max)
-        hsv_min = np.array([160,100,30])
+        hsv_min = np.array([160,65,65])
         hsv_max = np.array([180,255,255])
         mask += cv2.inRange(hsv, hsv_min, hsv_max)
     else:
@@ -100,7 +98,7 @@ def color_pick(img, color):
         ret, mask = cv2.threshold(gray, 30, 255, cv2.THRESH_BINARY_INV)
     # 輪郭抽出
     image, contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-    # 面積が1%以上で最大の領域を選定
+    # 最大の領域を選定
     max_area = 0
     best_cnt = None
     for cnt in contours:
@@ -131,6 +129,7 @@ def color_pick(img, color):
 def capture_thread():
     global g_frame
     global g_dst
+    global g_mask
     # FPS計算用の変数を初期化
     base_t = prev_t = time.perf_counter()
     current_t = 0
@@ -157,6 +156,7 @@ def capture_thread():
             # 迷路の中から指定色の物体を検出する
             mask, cx, cy = color_pick(dst, color)
             g_dst = dst
+            g_mask = mask
             if cx is not None and cy is not None:
                 # mqttで座標を送信
                 client.publish('enemy', '%d:%d' % (cx,cy))
@@ -170,11 +170,11 @@ def capture_thread():
             cnt = 0
             print('fps = %.2f' % fps)
         # FPS調整用のSleep時間を計算
-        current_t = time.perf_counter()
-        dt = 0.095 - (current_t - prev_t)
-        if dt > 0:
-            time.sleep(dt)
-        prev_t = time.perf_counter()
+        # current_t = time.perf_counter()
+        # dt = 0.095 - (current_t - prev_t)
+        # if dt > 0:
+        #     time.sleep(dt)
+        # prev_t = time.perf_counter()
 
 # カメラをキャプチャする
 cap = cv2.VideoCapture(0) # 0はカメラのデバイス番号
@@ -191,6 +191,8 @@ while(1):
         cv2.imshow('frame', g_frame)
     if g_dst is not None:
         cv2.imshow('dst', g_dst)
+    if g_mask is not None:
+        cv2.imshow('mask', g_mask)
     # ESCキーでプログラムを終了
     if cv2.waitKey(50) == 27:
         break

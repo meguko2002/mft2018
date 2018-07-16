@@ -9,7 +9,7 @@ public class Mqtt : MonoBehaviour {
     public bool update = true;
 
     private GameObject player;
-    private float timeleft;
+    private float timeleft = 0.0f;
 
     private GameObject enemy;
     private Vector3 pos;
@@ -48,8 +48,9 @@ public class Mqtt : MonoBehaviour {
 
         // 受信したデータを座標データに変換
         string[] arr = str.Split(':');
-        pos.x = int.Parse(arr[0]);
-        pos.z = int.Parse(arr[1]);
+        pos.x = (float.Parse(arr[1])/257*10)-5;
+        pos.y = 0.5f;
+        pos.z = (float.Parse(arr[0])/364*15)-8;
         update = true;
     } 
 
@@ -65,7 +66,7 @@ public class Mqtt : MonoBehaviour {
                 timeleft = 0.1f;
                 // プレイヤーの位置情報を送信する
                 Vector3 p = player.transform.position;
-                client.Publish("player", System.Text.Encoding.UTF8.GetBytes(String.Format("{0}:{1}", (int)p.x, (int)p.z)), MqttMsgBase.QOS_LEVEL_AT_MOST_ONCE, true);
+                client.Publish("player", System.Text.Encoding.UTF8.GetBytes(String.Format("{0:f2}:{1:f2}", p.x, p.z)), MqttMsgBase.QOS_LEVEL_AT_MOST_ONCE, true);
             }
         }
     }
