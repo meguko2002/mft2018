@@ -7,14 +7,17 @@ import urllib.request
 import paho.mqtt.client as mqtt
 
 # 設定
-color = 3 # 検出する色を指定（1=青,2=緑,3=赤,0=黒）
+color = 1 # 検出する色を指定（1=青,2=緑,3=赤,0=黒）
+# カメラ番号を指定
+cam_id = 0
 # IP WebcamのURLを指定
-webcam = True
+webcam = False
 url='http://192.168.43.146:8080/shot.jpg'
 # 画像表示用の変数
 g_frame = None
 g_dst = None
 g_mask = None
+g_hsv = None
 
 # 迷路を検出して台形補正する
 def keystone_correction(img):
@@ -67,6 +70,8 @@ def keystone_correction(img):
 
 # 各色の位置を検出する
 def color_pick(img, color):
+    global g_hsv
+
     if color == 1:
         # HSV色空間に変換
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
@@ -91,13 +96,14 @@ def color_pick(img, color):
         hsv_min = np.array([160,65,65])
         hsv_max = np.array([180,255,255])
         mask += cv2.inRange(hsv, hsv_min, hsv_max)
-    else:
-        # グレースケール化
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        # 黒色の検出
-        ret, mask = cv2.threshold(gray, 30, 255, cv2.THRESH_BINARY_INV)
+    # else:
+    #     # グレースケール化
+    #     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    #     # 黒色の検出
+    #     ret, mask = cv2.threshold(gray, 30, 255, cv2.THRESH_BINARY_INV)
     # 輪郭抽出
     image, contours, hierarchy = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    g_hsv = cv2.hconcat(cv2.split(hsv))
     # 最大の領域を選定
     max_area = 0
     best_cnt = None
@@ -130,6 +136,7 @@ def capture_thread():
     global g_frame
     global g_dst
     global g_mask
+
     # FPS計算用の変数を初期化
     base_t = prev_t = time.perf_counter()
     current_t = 0
@@ -145,7 +152,7 @@ def capture_thread():
         else:
             # 動画を1フレーム読み込む
             ret, frame = cap.read()
-            frame = cv2.resize(frame, (640, 360))
+            # frame = cv2.resize(frame, (640, 360))
         if frame is None:
             cv2.waitKey(1)
             continue
@@ -177,7 +184,7 @@ def capture_thread():
         # prev_t = time.perf_counter()
 
 # カメラをキャプチャする
-cap = cv2.VideoCapture(0) # 0はカメラのデバイス番号
+cap = cv2.VideoCapture(cam_id)
 # mqttの初期化
 client = mqtt.Client()
 client.connect('127.0.0.1', port=1883, keepalive=60)
@@ -193,6 +200,8 @@ while(1):
         cv2.imshow('dst', g_dst)
     if g_mask is not None:
         cv2.imshow('mask', g_mask)
+    if g_hsv is not None:
+        cv2.imshow('hsv', g_hsv)
     # ESCキーでプログラムを終了
     if cv2.waitKey(50) == 27:
         break
