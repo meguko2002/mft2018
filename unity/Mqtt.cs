@@ -16,6 +16,8 @@ public class Mqtt : MonoBehaviour {
     private MqttClient client;
     private float move_timeleft = 0.0f;
 
+    private int size_x = 8;
+    private int size_y = 12;
     protected Animator animator;
 
     // Use this for initialization
@@ -31,7 +33,9 @@ public class Mqtt : MonoBehaviour {
         int ret = client.Connect(clientId);
         if (ret == MqttMsgConnack.CONN_ACCEPTED) {
             // analogトピックからデータを受信する
-            client.Subscribe(new string[] { "enemy" }, new byte[] { MqttMsgBase.QOS_LEVEL_AT_MOST_ONCE }); 
+            client.Subscribe(new string[] { "enemy" }, new byte[] { MqttMsgBase.QOS_LEVEL_AT_MOST_ONCE });
+            // 開始用のコードを送信
+            client.Publish("player", System.Text.Encoding.UTF8.GetBytes("200"), MqttMsgBase.QOS_LEVEL_AT_MOST_ONCE, true);
         } else {
             // サーバへの接続に失敗したので座標移動をしないように変更
             update = false;
@@ -46,19 +50,17 @@ public class Mqtt : MonoBehaviour {
         animator = enemy.GetComponent<Animator>();
     }
 
-    void client_MqttMsgPublishReceived(object sender, MqttMsgPublishEventArgs e)
-    {
+    void client_MqttMsgPublishReceived(object sender, MqttMsgPublishEventArgs e) {
         // 受信したデータを取り出す
         var str = System.Text.Encoding.UTF8.GetString(e.Message);
         // Debug.Log("Received: " + str);
 
         // 受信したデータを座標データに変換
         string[] arr = str.Split(':');
-        pos.x = (float.Parse(arr[1])/257*10)-5;
+        pos.x = (float.Parse(arr[1]) / 257 * size_x) - (size_x/2);
         pos.y = 0.5f;
-        pos.z = (float.Parse(arr[0])/364*14)-7;
-        update = true;
-    } 
+        pos.z = (float.Parse(arr[0]) / 364 * size_y) - (size_y/2);
+    }
 
     // Update is called once per frame
     void Update () {
@@ -80,13 +82,42 @@ public class Mqtt : MonoBehaviour {
                 enemy.transform.position = pos;
             }
 
-            // 0.1秒ごとに処理する
+            // 0.05秒ごとに処理する
             timeleft -= Time.deltaTime;
             if (timeleft <= 0.0) {
-                timeleft = 0.1f;
-                // プレイヤーの位置情報を送信する
+                timeleft = 0.05f;
+                // プレイヤーの位置情報を取得
                 Vector3 p = player.transform.position;
-                client.Publish("player", System.Text.Encoding.UTF8.GetBytes(String.Format("{0:f2}:{1:f2}", p.x, p.z)), MqttMsgBase.QOS_LEVEL_AT_MOST_ONCE, true);
+                // LEDの座標に変換
+                int x = Convert.ToInt32((p.x + (size_x/2)) / size_x * 9);
+                int y = Convert.ToInt32((p.z + (size_y/2)) / size_y * 18);
+                // 範囲外に行かないように補正
+                if (x < 0) { x = 0; }
+                else if (x > 9) { x = 9; }
+                if (y < 0) { y = 0; }
+                else if (x > 9) { x = 9; }
+                // LED用のコードに変換
+                string str;
+                if (x % 2 == 1) {
+                    str = Convert.ToString(x * 19 + 18 - y);
+                } else {
+                    str = Convert.ToString(x * 19 + y);
+                }
+                // LED用のコードを送信
+                client.Publish("player", System.Text.Encoding.UTF8.GetBytes(str), MqttMsgBase.QOS_LEVEL_AT_MOST_ONCE, true);
+            }
+
+            // 勝敗決定時の処理
+            if (Timer.time <= 1) {
+                // 敗北用のコードを送信
+                client.Publish("player", System.Text.Encoding.UTF8.GetBytes("201"), MqttMsgBase.QOS_LEVEL_AT_MOST_ONCE, true);
+                // 更新フラグを寝かせて通信を無効化する
+                update = false;
+            } else if (Goal.goal) {
+                // 勝利用のコードを送信
+                client.Publish("player", System.Text.Encoding.UTF8.GetBytes("202"), MqttMsgBase.QOS_LEVEL_AT_MOST_ONCE, true);
+                // 更新フラグを寝かせて通信を無効化する
+                update = false;
             }
         }
     }
