@@ -9,7 +9,7 @@ import paho.mqtt.client as mqtt
 # 設定
 color = 1 # 検出する色を指定（1=青,2=緑,3=赤,0=黒）
 # カメラ番号を指定
-cam_id = 0
+cam_id = 1
 # IP WebcamのURLを指定
 webcam = False
 url='http://192.168.43.146:8080/shot.jpg'
@@ -76,7 +76,7 @@ def color_pick(img, color):
         # HSV色空間に変換
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         # 青色の検出
-        hsv_min = np.array([80,50,50])
+        hsv_min = np.array([80,20,180])
         hsv_max = np.array([150,255,255])
         mask = cv2.inRange(hsv, hsv_min, hsv_max)
     elif color == 2:
