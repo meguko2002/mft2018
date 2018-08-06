@@ -76,7 +76,7 @@ def color_pick(img, color):
         # HSV色空間に変換
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         # 青色の検出
-        hsv_min = np.array([80,20,180])
+        hsv_min = np.array([80,100,100])
         hsv_max = np.array([150,255,255])
         mask = cv2.inRange(hsv, hsv_min, hsv_max)
     elif color == 2:
@@ -152,7 +152,7 @@ def capture_thread():
         else:
             # 動画を1フレーム読み込む
             ret, frame = cap.read()
-            # frame = cv2.resize(frame, (640, 360))
+            frame = cv2.resize(frame, (640, 360))
         if frame is None:
             cv2.waitKey(1)
             continue

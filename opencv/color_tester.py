@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 
 g_hsv = None
-cam_id = 1
+cam_id = 0
 
 # 各色の位置を検出する
 def color_pick(img, color):
